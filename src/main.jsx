@@ -11,6 +11,8 @@ import Profile from './pages/Profile.jsx'
 import Analyze from './pages/Analyze.jsx'
 import Results from './pages/Results.jsx'
 import History from './pages/History.jsx'
+import PRPTestChecklist from './pages/PRPTestChecklist.jsx'
+import PRPShip from './pages/PRPShip.jsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -27,6 +29,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                     <Route path="/analyze" element={<Analyze />} />
                     <Route path="/results/:id" element={<Results />} />
                     <Route path="/history" element={<History />} />
+                    <Route path="/prp/07-test" element={<PRPTestChecklist />} />
+                    <Route path="/prp/08-ship" element={<PRPShip />} />
                 </Route>
             </Routes>
         </BrowserRouter>
