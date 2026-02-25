@@ -5,6 +5,8 @@ import {
     FileText,
     BookOpen,
     User,
+    Zap,
+    Clock,
 } from 'lucide-react'
 
 export default function Sidebar() {
@@ -12,6 +14,8 @@ export default function Sidebar() {
 
     const navItems = [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/analyze', label: 'Analyze JD', icon: Zap },
+        { path: '/history', label: 'History', icon: Clock },
         { path: '/practice', label: 'Practice', icon: Code2 },
         { path: '/assessments', label: 'Assessments', icon: FileText },
         { path: '/resources', label: 'Resources', icon: BookOpen },
@@ -36,8 +40,8 @@ export default function Sidebar() {
                             key={item.path}
                             to={item.path}
                             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                    ? 'bg-primary text-white'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                ? 'bg-primary text-white'
+                                : 'text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             <Icon size={20} />
