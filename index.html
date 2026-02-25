@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KodNest Premium Build System — Design System Showcase</title>
+
+    <link rel="stylesheet" href="design-tokens.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="components.css">
+
+    <style>
+        /* Demo-specific styles */
+        .section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-accent);
+            margin-bottom: var(--spacing-lg);
+            padding-top: var(--spacing-lg);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .demo-item {
+            padding: var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background-color: var(--color-surface);
+        }
+
+        .color-swatch {
+            width: 100%;
+            height: 80px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .color-label {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-primary);
+            margin-bottom: 4px;
+        }
+
+        .color-value {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- TOP BAR -->
+        <div class="topbar">
+            <div class="topbar__left">KodNest Premium</div>
+            <div class="topbar__center">Design System v1.0 • Foundation Complete</div>
+            <div class="topbar__right">
+                <span class="badge badge-success">✓ Active</span>
+            </div>
+        </div>
+
+        <!-- CONTEXT HEADER -->
+        <div class="context-header">
+            <h1 class="context-header__title">Design System Foundation</h1>
+            <p class="context-header__subtitle">Complete visual language, typography, spacing, and component
+                specifications for KodNest Premium Build System.</p>
+        </div>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="main-content">
+            <!-- PRIMARY WORKSPACE -->
+            <div class="workspace">
+                <!-- COLORS SECTION -->
+                <div class="section">
+                    <h2 class="section-title">Color System</h2>
+                    <div class="demo-grid">
+                        <!-- Background -->
+                        <div class="demo-item">
+                            <div class="color-swatch"
+                                style="background-color: #F7F6F3; border: 1px solid var(--color-border);"></div>
+                            <div class="color-label">Background</div>
+                            <div class="color-value">#F7F6F3</div>
+                        </div>
+                        <!-- Primary Text -->
+                        <div class="demo-item">
+                            <div class="color-swatch" style="background-color: #111111;"></div>
+                            <div class="color-label">Primary Text</div>
+                            <div class="color-value">#111111</div>
+                        </div>
+                        <!-- Accent -->
+                        <div class="demo-item">
+                            <div class="color-swatch" style="background-color: #8B0000;"></div>
+                            <div class="color-label">Accent (Deep Red)</div>
+                            <div class="color-value">#8B0000</div>
+                        </div>
+                        <!-- Success -->
+                        <div class="demo-item">
+                            <div class="color-swatch" style="background-color: #4A7C5F;"></div>
+                            <div class="color-label">Success</div>
+                            <div class="color-value">#4A7C5F</div>
+                        </div>
+                        <!-- Warning -->
+                        <div class="demo-item">
+                            <div class="color-swatch" style="background-color: #B8860B;"></div>
+                            <div class="color-label">Warning</div>
+                            <div class="color-value">#B8860B</div>
+                        </div>
+                        <!-- Border -->
+                        <div class="demo-item">
+                            <div class="color-swatch" style="background-color: #E8E6E1;"></div>
+                            <div class="color-label">Border</div>
+                            <div class="color-value">#E8E6E1</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TYPOGRAPHY SECTION -->
+                <div class="section">
+                    <h2 class="section-title">Typography</h2>
+                    <div class="card">
+                        <div class="h1">Headline XL (48px, Serif)</div>
+                        <p class="body-sm" style="margin-top: -8px;">Georgia or system serif, semi-bold, -0.02em letter
+                            spacing</p>
+                    </div>
+                    <div class="card" style="margin-top: var(--spacing-md);">
+                        <div class="h2">Headline L (32px, Serif)</div>
+                        <p class="body-sm" style="margin-top: -8px;">Georgia or system serif, semi-bold</p>
+                    </div>
+                    <div class="card" style="margin-top: var(--spacing-md);">
+                        <div class="h3">Headline M (24px, Serif)</div>
+                        <p class="body-sm" style="margin-top: -8px;">Georgia or system serif, semi-bold</p>
+                    </div>
+                    <div class="card" style="margin-top: var(--spacing-md);">
+                        <p class="body-lg">Body Large (18px, Sans-serif) — Clear hierarchy with generous line height of
+                            1.8 for optimal readability across all content.</p>
+                    </div>
+                    <div class="card" style="margin-top: var(--spacing-md);">
+                        <p class="body">Body Regular (16px, Sans-serif) — Standard text for all body copy, descriptions,
+                            and general content.</p>
+                    </div>
+                    <div class="card" style="margin-top: var(--spacing-md);">
+                        <p class="body-sm">Body Small (14px, Sans-serif) — Secondary text, metadata, and supporting
+                            information.</p>
+                    </div>
+                    <div class="card" style="margin-top: var(--spacing-md);">
+                        <p class="code">Code Font (14px, Monospace) — For code blocks, prompts, and technical
+                            information.</p>
+                    </div>
+                </div>
+
+                <!-- BUTTONS SECTION -->
+                <div class="section">
+                    <h2 class="section-title">Buttons</h2>
+                    <div
+                        style="display: flex; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-lg);">
+                        <button class="btn btn-primary">Primary Button</button>
+                        <button class="btn btn-secondary">Secondary Button</button>
+                        <button class="btn btn-ghost">Ghost Button</button>
+                        <button class="btn btn-primary" disabled>Disabled Primary</button>
+                    </div>
+                </div>
+
+                <!-- FORM INPUTS SECTION -->
+                <div class="section">
+                    <h2 class="section-title">Form Inputs</h2>
+                    <div class="form-group">
+                        <label for="demo-input" class="form-label required">Example Input Field</label>
+                        <input id="demo-input" type="text" class="input" placeholder="Type something...">
+                        <p class="form-hint">This is helpful hint text for the user.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="demo-textarea" class="form-label">Textarea Field</label>
+                        <textarea id="demo-textarea" class="textarea"
+                            placeholder="Enter longer content here..."></textarea>
+                    </div>
+                </div>
+
+                <!-- CARDS SECTION -->
+                <div class="section">
+                    <h2 class="section-title">Cards</h2>
+                    <div class="card">
+                        <div class="card-header">Card Component</div>
+                        <div class="card-body">This is a standard card with header, body, and optional footer. Cards are
+                            used throughout the interface for content organization.</div>
+                        <div class="card-footer">
+                            <button class="btn btn-secondary btn-sm">Cancel</button>
+                            <button class="btn btn-primary btn-sm">Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ALERTS SECTION -->
+                <div class="section">
+                    <h2 class="section-title">Alerts</h2>
+                    <div class="alert alert-error">
+                        <div class="alert-icon">⚠</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Error: Invalid File Format</div>
+                            <p>File format must be PNG or JPG. Please upload a valid image and try again.</p>
+                        </div>
+                    </div>
+                    <div class="alert alert-success" style="margin-top: var(--spacing-md);">
+                        <div class="alert-icon">✓</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Success: File Uploaded</div>
+                            <p>Your image has been successfully uploaded and is ready to use.</p>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning" style="margin-top: var(--spacing-md);">
+                        <div class="alert-icon">!</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Warning: Large File</div>
+                            <p>This file is quite large and may take longer to process.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SPACING SECTION -->
+                <div class="section">
+                    <h2 class="section-title">Spacing Scale</h2>
+                    <div class="card">
+                        <p class="body-sm" style="margin-bottom: var(--spacing-md);">
+                            <strong>Consistent spacing scale:</strong> Never use random values like 13px or 27px.
+                        </p>
+                        <div style="display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
+                            <div
+                                style="background-color: var(--color-accent-light); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: 12px;">
+                                <strong>8px</strong></div>
+                            <div
+                                style="background-color: var(--color-accent-light); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: 12px;">
+                                <strong>16px</strong></div>
+                            <div
+                                style="background-color: var(--color-accent-light); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: 12px;">
+                                <strong>24px</strong></div>
+                            <div
+                                style="background-color: var(--color-accent-light); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: 12px;">
+                                <strong>40px</strong></div>
+                            <div
+                                style="background-color: var(--color-accent-light); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: 12px;">
+                                <strong>64px</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BADGES SECTION -->
+                <div class="section">
+                    <h2 class="section-title">Status Badges</h2>
+                    <div style="display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
+                        <span class="badge badge-default">Not Started</span>
+                        <span class="badge badge-progress">In Progress (Step 3 of 7)</span>
+                        <span class="badge badge-success">✓ Shipped</span>
+                    </div>
+                </div>
+
+                <!-- EMPTY STATE SECTION -->
+                <div class="section">
+                    <h2 class="section-title">Empty State</h2>
+                    <div class="empty-state">
+                        <div class="empty-state__icon">📦</div>
+                        <h3 class="empty-state__title">No Projects Yet</h3>
+                        <p class="empty-state__description">Get started by creating your first project. You'll be able
+                            to manage everything from here.</p>
+                        <div class="empty-state__action">
+                            <button class="btn btn-primary">Create First Project</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECONDARY PANEL -->
+            <div class="sidebar">
+                <div class="card-header">Design System Info</div>
+
+                <div>
+                    <p class="body-sm"><strong>Philosophy:</strong> Calm, Intentional, Coherent, Confident</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div>
+                    <p class="body-sm"><strong>Colors:</strong> Maximum 4 colors across entire system</p>
+                    <p class="body-sm" style="margin-top: var(--spacing-xs); color: var(--color-text-secondary);">
+                        Background, Primary Text, Accent, plus Success/Warning variants</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div>
+                    <p class="body-sm"><strong>Spacing:</strong> Consistent scale only</p>
+                    <p class="body-sm" style="margin-top: var(--spacing-xs); color: var(--color-text-secondary);">8px,
+                        16px, 24px, 40px, 64px</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div>
+                    <p class="body-sm"><strong>Typography:</strong> Two fonts only</p>
+                    <p class="body-sm" style="margin-top: var(--spacing-xs); color: var(--color-text-secondary);">Serif
+                        for headers, Sans for body</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div>
+                    <p class="body-sm"><strong>Transitions:</strong> 150–200ms, ease-in-out</p>
+                    <p class="body-sm" style="margin-top: var(--spacing-xs); color: var(--color-text-secondary);">No
+                        bounce, no parallax, no animation noise</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="prompt-box">
+                    <div class="prompt-box__code">@media (max-width: 1199px) {
+                        .main-content {
+                        flex-direction: column;
+                        }
+                        }</div>
+                    <button class="prompt-box__copy-btn" title="Copy">📋</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn btn-primary btn-block">Copy</button>
+                    <button class="btn btn-secondary btn-block">Build in Lovable</button>
+                    <button class="btn btn-secondary btn-block">It Worked</button>
+                    <button class="btn btn-ghost btn-block btn-sm">Error</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROOF FOOTER -->
+        <div class="proof-footer">
+            <div class="proof-footer__content">
+                <div class="proof-footer__title">Design System Checklist</div>
+                <div class="proof-checklist">
+                    <div class="proof-item">
+                        <input type="checkbox" id="proof-1" class="checkbox" checked>
+                        <label for="proof-1" class="proof-item__label">Colors Defined</label>
+                    </div>
+                    <div class="proof-item">
+                        <input type="checkbox" id="proof-2" class="checkbox" checked>
+                        <label for="proof-2" class="proof-item__label">Typography System</label>
+                    </div>
+                    <div class="proof-item">
+                        <input type="checkbox" id="proof-3" class="checkbox" checked>
+                        <label for="proof-3" class="proof-item__label">Spacing Scale</label>
+                    </div>
+                    <div class="proof-item">
+                        <input type="checkbox" id="proof-4" class="checkbox" checked>
+                        <label for="proof-4" class="proof-item__label">Components Designed</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
