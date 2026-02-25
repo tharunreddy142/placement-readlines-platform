@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Trash2, Eye, Plus, Calendar } from 'lucide-react'
+import { loadNormalizedHistory, saveNormalizedHistory } from '../utils/historySchema'
 
 export default function History() {
     const navigate = useNavigate()
     const [analyses, setAnalyses] = useState([])
     const [loading, setLoading] = useState(true)
+    const [loadWarning, setLoadWarning] = useState('')
 
     const isDev = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV) || process.env.NODE_ENV !== 'production'
     const location = useLocation()
@@ -53,7 +55,7 @@ export default function History() {
         samples.forEach((s) => {
             if (!merged.find((e) => e.id === s.id)) merged.push(s)
         })
-        localStorage.setItem('analysisHistory', JSON.stringify(merged))
+        saveNormalizedHistory(merged)
         loadHistory()
         alert('Seeded sample analyses: ' + samples.map((s) => s.id).join(', '))
     }
@@ -78,22 +80,23 @@ export default function History() {
     }, [])
 
     const loadHistory = () => {
-        const history = JSON.parse(localStorage.getItem('analysisHistory') || '[]')
-        setAnalyses(history)
+        const { entries, skippedCount } = loadNormalizedHistory()
+        setAnalyses(entries)
+        setLoadWarning(skippedCount > 0 ? "One saved entry couldn't be loaded. Create a new analysis." : '')
         setLoading(false)
     }
 
     const handleDelete = (id) => {
         if (window.confirm('Are you sure you want to delete this analysis?')) {
             const updated = analyses.filter((a) => a.id !== id)
-            localStorage.setItem('analysisHistory', JSON.stringify(updated))
+            saveNormalizedHistory(updated)
             setAnalyses(updated)
         }
     }
 
     const handleClearAll = () => {
         if (window.confirm('This will delete ALL saved analyses. Are you sure?')) {
-            localStorage.setItem('analysisHistory', JSON.stringify([]))
+            saveNormalizedHistory([])
             setAnalyses([])
         }
     }
@@ -154,6 +157,12 @@ export default function History() {
                     </div>
                 </div>
 
+                {loadWarning && (
+                    <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <p className="text-sm text-amber-800">{loadWarning}</p>
+                    </div>
+                )}
+
                 {/* Empty State */}
                 {analyses.length === 0 ? (
                     <div className="bg-white rounded-lg shadow-sm p-12 text-center">
@@ -193,8 +202,8 @@ export default function History() {
                                     </div>
 
                                     {/* Score */}
-                                    <div className={`text-center rounded-lg p-3 ${getReadinessColor(analysis.readinessScore)}`}>
-                                        <div className="text-2xl font-bold">{analysis.readinessScore}</div>
+                                    <div className={`text-center rounded-lg p-3 ${getReadinessColor(analysis.finalScore ?? analysis.readinessScore)}`}>
+                                        <div className="text-2xl font-bold">{analysis.finalScore ?? analysis.readinessScore}</div>
                                         <div className="text-xs font-semibold mt-1">Score</div>
                                     </div>
 
@@ -237,12 +246,14 @@ export default function History() {
 
                 {/* Info Box */}
                 {analyses.length > 0 && (
-                    <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-blue-700">
-                            <strong>💾 Local Storage:</strong> All analyses are saved in your browser's local storage. They will
-                            persist even after you close this tab, but will be cleared if you clear your browser's cache.
-                        </p>
-                    </div>
+                    <>
+                        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p className="text-sm text-blue-700">
+                                <strong>💾 Local Storage:</strong> All analyses are saved in your browser's local storage. They will
+                                persist even after you close this tab, but will be cleared if you clear your browser's cache.
+                            </p>
+                        </div>
+                    </>
                 )}
             </div>
         </div>

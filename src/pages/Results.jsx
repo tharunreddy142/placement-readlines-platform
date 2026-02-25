@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Download, Share2, CheckCircle2, Calendar, Zap, Target, Copy, ChevronDown } from 'lucide-react'
 import { buildCompanyIntel, inferIndustry, estimateSizeCategory, typicalHiringFocus } from '../utils/companyIntel'
+import {
+    loadNormalizedHistory,
+    saveNormalizedHistory,
+    withUpdatedSkillConfidence,
+    computeFinalScore,
+    normalizeRoundMapping,
+} from '../utils/historySchema'
 
 export default function Results() {
     const { id } = useParams()
@@ -13,10 +20,10 @@ export default function Results() {
     const [skillConfidence, setSkillConfidence] = useState({})
     const [liveScore, setLiveScore] = useState(0)
     const [copyFeedback, setCopyFeedback] = useState('')
+    const [loadWarning, setLoadWarning] = useState('')
 
     useEffect(() => {
-        // Load from localStorage
-        const history = JSON.parse(localStorage.getItem('analysisHistory') || '[]')
+        const { entries: history, skippedCount } = loadNormalizedHistory()
         const entry = history.find((e) => e.id === id)
 
         if (entry) {
@@ -36,35 +43,39 @@ export default function Results() {
                     hiringFocus: intel.hiringFocus,
                     demo: true,
                 }
-                entry.roundMapping = intel.roundMapping
+                entry.roundMapping = normalizeRoundMapping(intel.roundMapping, entry.extractedSkills?.usedFallback)
                 updated = true
             }
 
             if (updated) {
                 // persist the enriched entry back to localStorage
                 const newHistory = history.map((h) => (h.id === entry.id ? entry : h))
-                localStorage.setItem('analysisHistory', JSON.stringify(newHistory))
+                saveNormalizedHistory(newHistory)
             }
 
             setAnalysis(entry)
             // Load skill confidence if exists, otherwise initialize
             setSkillConfidence(entry.skillConfidenceMap || {})
-            calculateLiveScore(entry.readinessScore, entry.skillConfidenceMap || {})
+            calculateLiveScore(entry.baseScore, entry.skillConfidenceMap || {}, entry.finalScore)
+            setLoadWarning(
+                skippedCount > 0 ? "One saved entry couldn't be loaded. Create a new analysis." : ''
+            )
             setError('')
         } else {
-            setError('Analysis not found. It may have been deleted.')
+            setError(
+                skippedCount > 0
+                    ? "One saved entry couldn't be loaded. Create a new analysis."
+                    : 'Analysis not found. It may have been deleted.'
+            )
         }
         setLoading(false)
     }, [id])
 
-    const calculateLiveScore = (baseScore, confidenceMap) => {
-        let adjustedScore = baseScore
-        Object.values(confidenceMap).forEach((confidence) => {
-            if (confidence === 'know') adjustedScore += 2
-            if (confidence === 'practice') adjustedScore -= 2
-        })
-        const finalScore = Math.max(0, Math.min(100, adjustedScore))
-        setLiveScore(finalScore)
+    const calculateLiveScore = (baseScore, confidenceMap, explicitFinalScore = null) => {
+        const final = Number.isFinite(explicitFinalScore)
+            ? explicitFinalScore
+            : computeFinalScore(baseScore, confidenceMap)
+        setLiveScore(final)
     }
 
     const handleSkillToggle = (skill, confidence) => {
@@ -73,23 +84,17 @@ export default function Results() {
         setSkillConfidence(newConfidence)
 
         // Update live score
-        calculateLiveScore(analysis.readinessScore, newConfidence)
+        calculateLiveScore(analysis.baseScore, newConfidence)
 
         // Save back to localStorage
-        const history = JSON.parse(localStorage.getItem('analysisHistory') || '[]')
+        const { entries: history } = loadNormalizedHistory()
         const updatedHistory = history.map((entry) => {
             if (entry.id === id) {
-                return {
-                    ...entry,
-                    skillConfidenceMap: newConfidence,
-                    liveScore: Math.max(0, Math.min(100, analysis.readinessScore + Object.values(newConfidence).reduce((sum, conf) => {
-                        return sum + (conf === 'know' ? 2 : conf === 'practice' ? -2 : 0)
-                    }, 0))),
-                }
+                return withUpdatedSkillConfidence(entry, newConfidence)
             }
             return entry
         })
-        localStorage.setItem('analysisHistory', JSON.stringify(updatedHistory))
+        saveNormalizedHistory(updatedHistory)
     }
 
     const copyToClipboard = (text, label) => {
@@ -174,7 +179,7 @@ JOB ANALYSIS REPORT
 Company: ${analysis.company}
 Role: ${analysis.role}
 Date: ${date}
-Base Readiness Score: ${analysis.readinessScore}/100
+Base Readiness Score: ${analysis.baseScore}/100
 Live Readiness Score (with skill adjustments): ${liveScore}/100
 
 EXTRACTED SKILLS & YOUR CONFIDENCE
@@ -230,8 +235,8 @@ ${new Date().toLocaleString()}
                 <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">{analysis.company}</h1>
-                            <p className="text-gray-600 text-lg mt-1">{analysis.role}</p>
+                            <h1 className="text-3xl font-bold text-gray-900">{analysis.company || 'Unknown Company'}</h1>
+                            <p className="text-gray-600 text-lg mt-1">{analysis.role || 'Role not specified'}</p>
                             <p className="text-sm text-gray-500 mt-2">
                                 Analyzed on {new Date(analysis.createdAt).toLocaleDateString()}
                             </p>
@@ -239,13 +244,18 @@ ${new Date().toLocaleString()}
                         <div className={`${readinessBg} rounded-lg p-6 text-center`}>
                             <div className={`text-5xl font-bold ${readinessColor}`}>{liveScore}</div>
                             <div className="text-sm text-gray-600 mt-1">Live Readiness Score</div>
-                            {liveScore !== analysis.readinessScore && (
+                            {liveScore !== analysis.baseScore && (
                                 <div className="text-xs text-gray-500 mt-2">
-                                    (Base: {analysis.readinessScore})
+                                    (Base: {analysis.baseScore})
                                 </div>
                             )}
                         </div>
                     </div>
+                    {loadWarning && (
+                        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                            <p className="text-sm text-amber-800">{loadWarning}</p>
+                        </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">

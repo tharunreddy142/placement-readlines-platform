@@ -4,6 +4,15 @@ import { Upload, AlertCircle } from 'lucide-react'
 import { extractSkills, calculateReadinessScore } from '../utils/skillExtraction'
 import { generateCompleteAnalysis } from '../utils/analysisGenerator'
 import { buildCompanyIntel } from '../utils/companyIntel'
+import {
+    createExtractedSkillsModel,
+    normalizeRoundMapping,
+    normalizeChecklist,
+    normalizePlan7Days,
+    normalizeQuestions,
+    loadNormalizedHistory,
+    saveNormalizedHistory,
+} from '../utils/historySchema'
 
 export default function Analyze() {
     const navigate = useNavigate()
@@ -14,6 +23,7 @@ export default function Analyze() {
     })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const [shortJdWarning, setShortJdWarning] = useState('')
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -22,6 +32,14 @@ export default function Analyze() {
             [name]: value,
         }))
         setError('')
+        if (name === 'jdText') {
+            const trimmed = value.trim()
+            setShortJdWarning(
+                trimmed && trimmed.length < 200
+                    ? 'This JD is too short to analyze deeply. Paste full JD for better output.'
+                    : ''
+            )
+        }
     }
 
     const handleAnalyze = (e) => {
@@ -33,10 +51,12 @@ export default function Analyze() {
             return
         }
 
-        if (formData.jdText.trim().length < 50) {
-            setError('Job description seems too short. Please provide more details.')
-            return
-        }
+        const jdTrimmed = formData.jdText.trim()
+        setShortJdWarning(
+            jdTrimmed.length < 200
+                ? 'This JD is too short to analyze deeply. Paste full JD for better output.'
+                : ''
+        )
 
         setLoading(true)
 
@@ -63,33 +83,54 @@ export default function Analyze() {
                     readinessScore
                 )
 
-                const companyProvided = Boolean(formData.company && formData.company.trim())
-                const normalizedCompany = companyProvided ? formData.company.trim() : 'Unknown Company'
+                const normalizedCompany = typeof formData.company === 'string' ? formData.company.trim() : ''
+                const normalizedRole = typeof formData.role === 'string' ? formData.role.trim() : ''
                 const intel = buildCompanyIntel(formData.company, extractedSkills)
+                const extractedSkillsModel = createExtractedSkillsModel(extractedSkills)
+                const roundMapping = normalizeRoundMapping(intel.roundMapping, extractedSkillsModel.usedFallback)
+                const checklist = normalizeChecklist(analysis.checklist, extractedSkillsModel.usedFallback)
+                const plan7Days = normalizePlan7Days(analysis.sevenDayPlan, extractedSkillsModel.usedFallback)
+                const questions = normalizeQuestions(analysis.interviewQuestions, extractedSkillsModel.usedFallback)
+                const createdAt = new Date().toISOString()
 
                 // Save to localStorage
                 const historyEntry = {
                     id: Date.now().toString(),
-                    createdAt: new Date().toISOString(),
+                    createdAt,
                     company: normalizedCompany,
-                    role: formData.role || 'Unknown Role',
-                    companyProvided,
+                    role: normalizedRole,
                     companyIntel: {
-                        name: normalizedCompany,
+                        name: normalizedCompany || '',
                         industry: intel.industry,
                         sizeCategory: intel.sizeCategory,
                         hiringFocus: intel.hiringFocus,
                         demo: true,
                     },
-                    roundMapping: intel.roundMapping,
+                    extractedSkills: extractedSkillsModel,
+                    roundMapping,
+                    checklist,
+                    plan7Days,
+                    questions,
+                    baseScore: readinessScore,
+                    skillConfidenceMap: {},
+                    finalScore: readinessScore,
+                    updatedAt: createdAt,
                     jdText: formData.jdText,
-                    ...analysis,
+                    companyProvided: Boolean(normalizedCompany),
+                    readinessScore: readinessScore,
+                    liveScore: readinessScore,
+                    sevenDayPlan: plan7Days.map((day) => ({ day: day.day, title: day.focus, tasks: day.tasks })),
+                    interviewQuestions: questions.map((question) => ({
+                        question,
+                        category: 'General',
+                        difficulty: 'Medium',
+                    })),
                 }
 
                 // Get existing history
-                const existingHistory = JSON.parse(localStorage.getItem('analysisHistory') || '[]')
+                const { entries: existingHistory } = loadNormalizedHistory()
                 existingHistory.unshift(historyEntry)
-                localStorage.setItem('analysisHistory', JSON.stringify(existingHistory))
+                saveNormalizedHistory(existingHistory)
 
                 // Navigate to results with ID
                 navigate(`/results/${historyEntry.id}`)
@@ -199,9 +240,15 @@ Preferred Qualifications:
                                 onChange={handleChange}
                                 placeholder="Paste the complete job description here..."
                                 rows={12}
+                                required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition font-mono text-sm"
                             />
-                            <p className="text-xs text-gray-500 mt-1">Minimum 50 characters required</p>
+                            <p className="text-xs text-gray-500 mt-1">Required. Paste the full JD for best analysis quality.</p>
+                            {shortJdWarning && (
+                                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                                    <p className="text-sm text-amber-800">{shortJdWarning}</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Buttons */}
