@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Upload, AlertCircle } from 'lucide-react'
 import { extractSkills, calculateReadinessScore } from '../utils/skillExtraction'
 import { generateCompleteAnalysis } from '../utils/analysisGenerator'
+import { buildCompanyIntel } from '../utils/companyIntel'
 
 export default function Analyze() {
     const navigate = useNavigate()
@@ -62,12 +63,25 @@ export default function Analyze() {
                     readinessScore
                 )
 
+                const companyProvided = Boolean(formData.company && formData.company.trim())
+                const normalizedCompany = companyProvided ? formData.company.trim() : 'Unknown Company'
+                const intel = buildCompanyIntel(formData.company, extractedSkills)
+
                 // Save to localStorage
                 const historyEntry = {
                     id: Date.now().toString(),
                     createdAt: new Date().toISOString(),
-                    company: formData.company || 'Unknown Company',
+                    company: normalizedCompany,
                     role: formData.role || 'Unknown Role',
+                    companyProvided,
+                    companyIntel: {
+                        name: normalizedCompany,
+                        industry: intel.industry,
+                        sizeCategory: intel.sizeCategory,
+                        hiringFocus: intel.hiringFocus,
+                        demo: true,
+                    },
+                    roundMapping: intel.roundMapping,
                     jdText: formData.jdText,
                     ...analysis,
                 }

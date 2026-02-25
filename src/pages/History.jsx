@@ -1,11 +1,77 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Trash2, Eye, Plus, Calendar } from 'lucide-react'
 
 export default function History() {
     const navigate = useNavigate()
     const [analyses, setAnalyses] = useState([])
     const [loading, setLoading] = useState(true)
+
+    const isDev = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV) || process.env.NODE_ENV !== 'production'
+    const location = useLocation()
+
+    const seedSamples = () => {
+        // simple inlined seeder (keeps duplicate checks)
+        const samples = [
+            {
+                id: 'sample-enterprise-1',
+                company: 'Amazon',
+                role: 'SDE',
+                createdAt: new Date().toISOString(),
+                readinessScore: 60,
+                extractedSkills: { categories: { 'Core CS': ['Algorithms', 'Data Structures'] } },
+                sevenDayPlan: [{ day: 1, title: 'DSA fundamentals', tasks: ['Arrays', 'Strings'] }],
+                checklist: [{ round: 1, name: 'Online Test', items: ['DSA', 'Aptitude'] }],
+                interviewQuestions: [{ question: 'Explain quicksort.', category: 'Core CS', difficulty: 'Medium' }]
+            },
+            {
+                id: 'sample-startup-1',
+                company: 'CoolStartup',
+                role: 'Frontend Engineer',
+                createdAt: new Date().toISOString(),
+                readinessScore: 50,
+                extractedSkills: { categories: { Web: ['React', 'JavaScript'] } },
+                sevenDayPlan: [{ day: 1, title: 'React core', tasks: ['Components', 'State'] }],
+                checklist: [{ round: 1, name: 'Practical Coding', items: ['Build feature'] }],
+                interviewQuestions: [{ question: 'How to optimize React rendering?', category: 'Web', difficulty: 'Medium' }]
+            },
+            {
+                id: 'sample-midsize-1',
+                company: 'Acme Inc',
+                role: 'Backend Engineer',
+                createdAt: new Date().toISOString(),
+                readinessScore: 55,
+                extractedSkills: { categories: { 'Core CS': ['Databases'], Web: ['Node.js'] } },
+                sevenDayPlan: [{ day: 1, title: 'Backend basics', tasks: ['HTTP', 'DB modeling'] }],
+                checklist: [{ round: 1, name: 'Coding & Aptitude', items: ['Coding challenge'] }],
+                interviewQuestions: [{ question: 'Explain transactions.', category: 'Core CS', difficulty: 'Medium' }]
+            }
+        ]
+
+        const existing = JSON.parse(localStorage.getItem('analysisHistory') || '[]')
+        const merged = [...existing]
+        samples.forEach((s) => {
+            if (!merged.find((e) => e.id === s.id)) merged.push(s)
+        })
+        localStorage.setItem('analysisHistory', JSON.stringify(merged))
+        loadHistory()
+        alert('Seeded sample analyses: ' + samples.map((s) => s.id).join(', '))
+    }
+
+    // Auto-run seeder when URL contains ?seed=1 (useful for quick verification).
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(location.search)
+            if (params.get('seed') === '1') {
+                seedSamples()
+                // remove query param to avoid repeated runs
+                navigate(location.pathname, { replace: true })
+            }
+        } catch (e) {
+            // ignore
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     useEffect(() => {
         loadHistory()
@@ -67,6 +133,15 @@ export default function History() {
                                 className="px-6 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition font-semibold"
                             >
                                 Clear All
+                            </button>
+                        )}
+                        {isDev && (
+                            <button
+                                onClick={seedSamples}
+                                title="Seed sample analyses into localStorage (dev only)"
+                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
+                            >
+                                Seed Samples
                             </button>
                         )}
                         <button

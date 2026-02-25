@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Download, Share2, CheckCircle2, Calendar, Zap, Target, Copy, ChevronDown } from 'lucide-react'
+import { buildCompanyIntel, inferIndustry, estimateSizeCategory, typicalHiringFocus } from '../utils/companyIntel'
 
 export default function Results() {
     const { id } = useParams()
@@ -19,6 +20,32 @@ export default function Results() {
         const entry = history.find((e) => e.id === id)
 
         if (entry) {
+            // Ensure company intel + round mapping exist
+            let updated = false
+            if (typeof entry.companyProvided !== 'boolean') {
+                entry.companyProvided = Boolean(entry.company && entry.company.trim() && entry.company !== 'Unknown Company')
+                updated = true
+            }
+
+            if (!entry.companyIntel || !entry.roundMapping) {
+                const intel = buildCompanyIntel(entry.companyProvided ? entry.company : '', entry.extractedSkills)
+                entry.companyIntel = {
+                    name: entry.company,
+                    industry: intel.industry,
+                    sizeCategory: intel.sizeCategory,
+                    hiringFocus: intel.hiringFocus,
+                    demo: true,
+                }
+                entry.roundMapping = intel.roundMapping
+                updated = true
+            }
+
+            if (updated) {
+                // persist the enriched entry back to localStorage
+                const newHistory = history.map((h) => (h.id === entry.id ? entry : h))
+                localStorage.setItem('analysisHistory', JSON.stringify(newHistory))
+            }
+
             setAnalysis(entry)
             // Load skill confidence if exists, otherwise initialize
             setSkillConfidence(entry.skillConfidenceMap || {})
@@ -225,8 +252,8 @@ ${new Date().toLocaleString()}
                         <button
                             onClick={() => copyToClipboard(generateSevenDayPlanText(), '7-Day Plan')}
                             className={`px-4 py-2 rounded-lg transition text-sm font-semibold flex items-center justify-center gap-2 ${copyFeedback === '7-Day Plan'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             <Copy className="w-4 h-4" />
@@ -235,8 +262,8 @@ ${new Date().toLocaleString()}
                         <button
                             onClick={() => copyToClipboard(generateChecklistText(), 'Checklist')}
                             className={`px-4 py-2 rounded-lg transition text-sm font-semibold flex items-center justify-center gap-2 ${copyFeedback === 'Checklist'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             <Copy className="w-4 h-4" />
@@ -245,8 +272,8 @@ ${new Date().toLocaleString()}
                         <button
                             onClick={() => copyToClipboard(generateQuestionsText(), 'Questions')}
                             className={`px-4 py-2 rounded-lg transition text-sm font-semibold flex items-center justify-center gap-2 ${copyFeedback === 'Questions'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             <Copy className="w-4 h-4" />
@@ -262,13 +289,53 @@ ${new Date().toLocaleString()}
                     </div>
                 </div>
 
-                {/* Score Explanation */}
+                {/* Company Intel & Score Explanation */}
+                {analysis.companyProvided && (
+                    <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-100">
+                        <div className="flex items-start justify-between gap-6">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">{analysis.company}</h3>
+                                <p className="text-sm text-gray-600">{analysis.companyIntel?.industry || inferIndustry(analysis.company)}</p>
+                                <p className="text-sm text-gray-500 mt-1">Size: {analysis.companyIntel?.sizeCategory || estimateSizeCategory(analysis.company)}</p>
+                                <p className="text-sm text-gray-700 mt-3">
+                                    <span className="font-semibold">Typical Hiring Focus:</span>{' '}
+                                    {analysis.companyIntel?.hiringFocus || typicalHiringFocus(estimateSizeCategory(analysis.company))}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-2">Demo Mode: Company intel generated heuristically.</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                     <p className="text-sm text-blue-700">
                         <strong>Score Details:</strong> Base 35 + categories (max 30) + bonuses | <strong>Live adjustments:</strong> +2 for
                         each "I know" skill, -2 for each "Need practice"
                     </p>
                 </div>
+
+                {/* Round Mapping Timeline */}
+                {analysis.roundMapping && Array.isArray(analysis.roundMapping) && (
+                    <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Interview Round Mapping</h2>
+                        <div className="relative ml-4 border-l-2 border-indigo-100 pl-6 space-y-6">
+                            {analysis.roundMapping.map((r) => (
+                                <div key={r.round} className="relative">
+                                    <div className="absolute -left-[38px] top-1 w-8 h-8 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center font-bold">
+                                        {r.round}
+                                    </div>
+                                    <div className="flex-1 bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <h3 className="font-semibold text-gray-900">{`Round ${r.round}: ${r.title}`}</h3>
+                                            <span className="text-sm text-gray-500">{r.details}</span>
+                                        </div>
+                                        <p className="text-sm text-gray-700 mt-2">Why this round matters: {r.why}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Extracted Skills - Interactive */}
                 <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
@@ -289,8 +356,8 @@ ${new Date().toLocaleString()}
                                                 <button
                                                     onClick={() => handleSkillToggle(skill, 'know')}
                                                     className={`px-2 py-1 text-xs font-semibold rounded transition ${confidence === 'know'
-                                                            ? 'bg-green-600 text-white'
-                                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        ? 'bg-green-600 text-white'
+                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     I know
@@ -298,8 +365,8 @@ ${new Date().toLocaleString()}
                                                 <button
                                                     onClick={() => handleSkillToggle(skill, 'practice')}
                                                     className={`px-2 py-1 text-xs font-semibold rounded transition ${confidence === 'practice'
-                                                            ? 'bg-orange-600 text-white'
-                                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        ? 'bg-orange-600 text-white'
+                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     Need practice
